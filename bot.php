@@ -8,6 +8,9 @@ use Discord\Builders\Components\ActionRow;
 use Discord\Builders\Components\Button;
 use Discord\Builders\MessageBuilder;
 use Discord\Parts\Interactions\Interaction;
+use Discord\Builders\Components\SelectMenu;
+use Discord\Builders\Components\Option;
+use Discord\Helpers\Collection;
 
 include __DIR__.'/vendor/autoload.php';
 
@@ -31,21 +34,48 @@ $discord->on('ready', function (Discord $discord) {
                 $message->channel->sendMessage("{$message->author}, ainda não temos um canal de regras!");
                 break;
                 
-            case str_contains($content, '!botão'):              
+            case str_contains($content, '!botão'):
+
                 $button = Button::new(Button::STYLE_SUCCESS)
                     ->setLabel('Aqui é um botão');
+                $button1 = Button::new(Button::STYLE_SUCCESS)
+                    ->setLabel('Aqui é um');
+
+                $select = SelectMenu::new()
+                    ->setPlaceholder("Clique aqui para escolher a moeda!")
+                    ->addOption(Option::new("USD"))
+                    ->addOption(Option::new('EUR'));
                     
                 $button->setListener(function (Interaction $interaction) {
                     $interaction->respondWithMessage(MessageBuilder::new()
                         ->setContent('Apenas testando resposta do botão'));
                 }, $discord);
 
+                $button1->setListener(function (Interaction $interaction) {
+                    $interaction->respondWithMessage(MessageBuilder::new()
+                        ->setContent('Apenas testando'));
+                }, $discord);
+
                 $row = ActionRow::new()
-                    ->addComponent($button);
+                    ->addComponent($button)
+                    ->addComponent($button1);
+
+                $embed = new Embed($discord);
+                $embed->setTitle('Qual moeda?')
+                        ->setColor( 0xFF0000 );
+
+                $select->setListener(function (Interaction $interaction, Collection $options) {
+                    foreach ($options as $option) {
+                        echo $option->getValue().PHP_EOL;
+                    }
+                
+                    $interaction->respondWithMessage(MessageBuilder::new()->setContent('thanks!'));
+                }, $discord);
 
                 $message->channel->sendMessage(MessageBuilder::new()
-                    ->setContent('Hello, world!')
-                    ->addComponent($row));                    
+                    ->addEmbed($embed)
+                    ->addComponent($row)
+                    ->addComponent($select));                    
                 break;
 
             case str_contains($content, '!cotação'):
